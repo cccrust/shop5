@@ -3,7 +3,7 @@
 mod cli;
 mod db;
 mod model;
-// mod web; // v0.2 啟用
+mod web;
 
 use anyhow::Result;
 use clap::Parser;
@@ -39,6 +39,9 @@ async fn main() -> Result<()> {
         }
         cli::Commands::Order(cmd) => {
             cli::order::run(&conn, &cmd.subcommand)?;
+        }
+        cli::Commands::Web { host, port } => {
+            web::start(conn, host, *port).await;
         }
     }
 

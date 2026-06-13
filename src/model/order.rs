@@ -1,7 +1,7 @@
 use anyhow::{Result, bail};
 use rusqlite::{params, Connection};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct Order {
     pub id: i64,
     pub buyer_id: i64,
@@ -13,7 +13,7 @@ pub struct Order {
     pub updated_at: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct OrderItem {
     pub id: i64,
     pub order_id: i64,
@@ -24,7 +24,7 @@ pub struct OrderItem {
     pub subtotal: i64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct OrderWithItems {
     pub order: Order,
     pub items: Vec<OrderItem>,

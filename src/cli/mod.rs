@@ -25,6 +25,13 @@ pub enum Commands {
     Cart(CartCmd),
     /// 訂單管理
     Order(OrderCmd),
+    /// 啟動 Web API 伺服器
+    Web {
+        #[arg(long, default_value = "0.0.0.0")]
+        host: String,
+        #[arg(long, default_value_t = 8080)]
+        port: u16,
+    },
 }
 
 #[derive(Parser)]

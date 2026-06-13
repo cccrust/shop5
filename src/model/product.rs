@@ -1,7 +1,7 @@
 use anyhow::{Result, bail};
 use rusqlite::{params, Connection};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct Product {
     pub id: i64,
     pub seller_id: i64,
