@@ -13,7 +13,7 @@ rm -f $DB
 SHOP5_DB=$DB $SHOP5 init
 
 # 在背景啟動 API 伺服器
-SHOP5_DB=$DB $SHOP5 web --port $PORT &
+SHOP5_DB=$DB $SHOP5 web --port $PORT --dev &
 PID=$!
 sleep 0.5
 

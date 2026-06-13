@@ -31,6 +31,8 @@ pub enum Commands {
         host: String,
         #[arg(long, default_value_t = 8080)]
         port: u16,
+        #[arg(long)]
+        dev: bool,
     },
 }
 

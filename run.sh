@@ -9,7 +9,7 @@ usage() {
     echo "模式:"
     echo "  dev        開發模式（API + Vite dev server）"
     echo "  prod       Production 模式（一體伺服）"
-    echo "  api        僅 API 伺服器"
+    echo "  api        僅 API 伺服器（開發模式）"
     echo "  build      建置前端"
     exit 1
 }
