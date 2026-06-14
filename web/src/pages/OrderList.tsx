@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 import type { Order } from "../types";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -13,24 +14,23 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default function OrderList() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user) return;
     (async () => {
       try {
-        const users = await api.users.list();
-        const first = users[0];
-        if (!first) return;
-        const orders = await api.orders.list({ buyer_id: first.id });
-        setOrders(orders);
+        const o = await api.orders.myList();
+        setOrders(o);
       } catch {
         // ignore
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [user]);
 
   const formatPrice = (p: number) => `NT$${p.toLocaleString()}`;
 

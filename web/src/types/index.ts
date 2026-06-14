@@ -2,11 +2,17 @@ export interface User {
   id: number;
   username: string;
   display_name: string;
+  email: string;
   role: string;
   bio: string;
   avatar: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: User;
 }
 
 export interface Category {

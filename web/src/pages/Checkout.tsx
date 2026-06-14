@@ -1,24 +1,22 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 import type { CartPreview } from "../types";
 
 export default function Checkout() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [preview, setPreview] = useState<CartPreview | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState(0);
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    if (!user) return;
     (async () => {
       try {
-        const users = await api.users.list();
-        if (!users || users.length === 0) return;
-        const uid = users[0]!.id;
-        setUserId(uid);
-        const p = await api.orders.preview(uid);
+        const p = await api.orders.myPreview();
         setPreview(p);
       } catch (e: any) {
         alert(e.message);
@@ -27,13 +25,13 @@ export default function Checkout() {
         setLoading(false);
       }
     })();
-  }, [navigate]);
+  }, [user, navigate]);
 
   const handleSubmit = async () => {
-    if (!preview) return;
+    if (!preview || !user) return;
     setSubmitting(true);
     try {
-      const result = await api.orders.create(userId, note);
+      const result = await api.orders.myCreate(note);
       navigate(`/order/confirm/${result.order.id}`);
     } catch (e: any) {
       alert(e.message);

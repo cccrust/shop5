@@ -6,6 +6,7 @@ pub struct User {
     pub id: i64,
     pub username: String,
     pub display_name: String,
+    pub email: String,
     pub role: String,
     pub bio: String,
     pub avatar: String,
@@ -13,13 +14,18 @@ pub struct User {
     pub updated_at: String,
 }
 
-pub fn add(conn: &Connection, username: &str, display_name: &str, role: &str, bio: &str) -> Result<User> {
+pub fn add(conn: &Connection, username: &str, display_name: &str, role: &str, bio: &str, email: &str, password: &str) -> Result<User> {
     if !["buyer", "seller", "admin"].contains(&role) {
         bail!("角色必須為 buyer、seller 或 admin");
     }
+    let password_hash = if password.is_empty() {
+        String::new()
+    } else {
+        bcrypt::hash(password, bcrypt::DEFAULT_COST)?
+    };
     conn.execute(
-        "INSERT INTO users (username, display_name, role, bio) VALUES (?1, ?2, ?3, ?4)",
-        params![username, display_name, role, bio],
+        "INSERT INTO users (username, display_name, email, password_hash, role, bio) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![username, display_name, email, password_hash, role, bio],
     )?;
     let id = conn.last_insert_rowid();
     get(conn, id)
@@ -41,11 +47,12 @@ pub fn list(conn: &Connection, search: &str) -> Result<Vec<User>> {
             id: row.get(0)?,
             username: row.get(1)?,
             display_name: row.get(2)?,
-            role: row.get(3)?,
-            bio: row.get(4)?,
-            avatar: row.get(5)?,
-            created_at: row.get(6)?,
-            updated_at: row.get(7)?,
+            email: row.get(3)?,
+            role: row.get(5)?,
+            bio: row.get(6)?,
+            avatar: row.get(7)?,
+            created_at: row.get(8)?,
+            updated_at: row.get(9)?,
         })
     })?;
     let mut users = Vec::new();
@@ -62,11 +69,12 @@ pub fn get(conn: &Connection, id: i64) -> Result<User> {
             id: row.get(0)?,
             username: row.get(1)?,
             display_name: row.get(2)?,
-            role: row.get(3)?,
-            bio: row.get(4)?,
-            avatar: row.get(5)?,
-            created_at: row.get(6)?,
-            updated_at: row.get(7)?,
+            email: row.get(3)?,
+            role: row.get(5)?,
+            bio: row.get(6)?,
+            avatar: row.get(7)?,
+            created_at: row.get(8)?,
+            updated_at: row.get(9)?,
         })
     })?;
     Ok(user)
@@ -108,7 +116,7 @@ mod tests {
     #[test]
     fn test_add_and_get_user() {
         let conn = setup();
-        let u = add(&conn, "alice", "愛麗絲", "buyer", "哈囉").unwrap();
+        let u = add(&conn, "alice", "愛麗絲", "buyer", "哈囉", "", "").unwrap();
         assert_eq!(u.username, "alice");
         assert_eq!(u.display_name, "愛麗絲");
         assert_eq!(u.role, "buyer");
@@ -120,15 +128,15 @@ mod tests {
     #[test]
     fn test_add_user_invalid_role() {
         let conn = setup();
-        let r = add(&conn, "bad", "壞角色", "invalid", "");
+        let r = add(&conn, "bad", "壞角色", "invalid", "", "", "");
         assert!(r.is_err());
     }
 
     #[test]
     fn test_list_users() {
         let conn = setup();
-        add(&conn, "alice", "愛麗絲", "buyer", "").unwrap();
-        add(&conn, "bob", "鮑勃", "seller", "").unwrap();
+        add(&conn, "alice", "愛麗絲", "buyer", "", "", "").unwrap();
+        add(&conn, "bob", "鮑勃", "seller", "", "", "").unwrap();
         let users = list(&conn, "").unwrap();
         assert_eq!(users.len(), 2);
     }
@@ -136,8 +144,8 @@ mod tests {
     #[test]
     fn test_list_users_search() {
         let conn = setup();
-        add(&conn, "alice", "愛麗絲", "buyer", "").unwrap();
-        add(&conn, "bob", "鮑勃", "seller", "").unwrap();
+        add(&conn, "alice", "愛麗絲", "buyer", "", "", "").unwrap();
+        add(&conn, "bob", "鮑勃", "seller", "", "", "").unwrap();
         let users = list(&conn, "愛麗").unwrap();
         assert_eq!(users.len(), 1);
     }
@@ -145,7 +153,7 @@ mod tests {
     #[test]
     fn test_update_user() {
         let conn = setup();
-        let u = add(&conn, "alice", "愛麗絲", "buyer", "哈囉").unwrap();
+        let u = add(&conn, "alice", "愛麗絲", "buyer", "哈囉", "", "").unwrap();
         update(&conn, u.id, "愛麗絲醬", "バイバイ", "seller").unwrap();
         let got = get(&conn, u.id).unwrap();
         assert_eq!(got.display_name, "愛麗絲醬");
@@ -155,7 +163,7 @@ mod tests {
     #[test]
     fn test_delete_user() {
         let conn = setup();
-        let u = add(&conn, "alice", "愛麗絲", "buyer", "").unwrap();
+        let u = add(&conn, "alice", "愛麗絲", "buyer", "", "", "").unwrap();
         delete(&conn, u.id).unwrap();
         let r = get(&conn, u.id);
         assert!(r.is_err());

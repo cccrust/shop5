@@ -3,7 +3,7 @@ use rusqlite::Connection;
 
 #[derive(clap::Subcommand)]
 pub enum Subcommand {
-    /// 新增使用者
+    /// 新增使用者（email 和 password 選填，CLI 不填則無法透過 Web 登入）
     Add {
         username: String,
         display_name: String,
@@ -11,6 +11,10 @@ pub enum Subcommand {
         role: String,
         #[arg(long, default_value = "")]
         bio: String,
+        #[arg(long, default_value = "")]
+        email: String,
+        #[arg(long, default_value = "")]
+        password: String,
     },
     /// 列出使用者
     List {
@@ -35,8 +39,8 @@ pub enum Subcommand {
 
 pub fn run(conn: &Connection, cmd: &Subcommand) -> Result<()> {
     match cmd {
-        Subcommand::Add { username, display_name, role, bio } => {
-            let u = crate::model::user::add(conn, username, display_name, role, bio)?;
+        Subcommand::Add { username, display_name, role, bio, email, password } => {
+            let u = crate::model::user::add(conn, username, display_name, role, bio, email, password)?;
             println!("已建立使用者 #{}: @{} ({})", u.id, u.username, u.display_name);
         }
         Subcommand::List { search } => {

@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 import type { Category } from "../types";
 
 export default function ProductEdit() {
   const navigate = useNavigate();
-  const [sellerId, setSellerId] = useState(0);
+  const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
@@ -16,18 +17,18 @@ export default function ProductEdit() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (!user) return;
     (async () => {
       try {
-        const users = await api.users.list();
-        const seller = users.find((u) => u.role === "seller") || users[0];
-        if (seller) setSellerId(seller.id);
         const cats = await api.categories.list();
         setCategories(cats);
       } catch {
         // ignore
       }
     })();
-  }, []);
+  }, [user]);
+
+  if (!user) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +38,7 @@ export default function ProductEdit() {
     setSaving(true);
     try {
       const p = await api.products.create({
-        seller_id: sellerId,
+        seller_id: user.id,
         title: title.trim(),
         price: Number(price),
         stock: Number(stock),

@@ -1,22 +1,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 import type { CartItemWithProduct } from "../types";
 
 export default function Cart() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [items, setItems] = useState<CartItemWithProduct[]>([]);
-  const [userId, setUserId] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
+    if (!user) return;
     try {
-      const users = await api.users.list();
-      const first = users[0];
-      if (!first) return;
-      const uid = first.id;
-      setUserId(uid);
-      const cart = await api.cart.list(uid);
+      const cart = await api.cart.myList();
       setItems(cart);
     } catch {
       // ignore
@@ -25,25 +22,25 @@ export default function Cart() {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [user]);
 
   const handleRemove = async (productId: number) => {
-    await api.cart.remove(userId, productId);
+    if (!user) return;
+    await api.cart.remove(user.id, productId);
     load();
   };
 
   const handleQtyChange = async (productId: number, newQty: number) => {
+    if (!user) return;
     if (newQty <= 0) {
       await handleRemove(productId);
       return;
     }
-    await api.cart.update(userId, productId, newQty);
+    await api.cart.myUpdateQty(productId, newQty);
     load();
   };
 
-  const handleCheckout = async () => {
-    navigate("/checkout");
-  };
+  const handleCheckout = () => navigate("/checkout");
 
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const formatPrice = (p: number) => `NT$${p.toLocaleString()}`;

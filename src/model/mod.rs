@@ -5,3 +5,4 @@ pub mod order;
 pub mod category;
 pub mod review;
 pub mod stats;
+pub mod auth;

@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 import type { User, Review } from "../types";
 
 export default function UserDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user: current } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<{ id: number; title: string; price: number }[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -60,7 +62,7 @@ export default function UserDetail() {
           </div>
         </div>
         {user.bio && <p className="text-sm text-gray-400 mt-3">{user.bio}</p>}
-        {user.role === "seller" && (
+        {current && user.role === "seller" && user.id === current.id && (
           <div className="flex gap-2 mt-3">
             <button
               onClick={() => navigate(`/seller/dashboard`)}

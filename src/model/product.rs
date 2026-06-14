@@ -221,7 +221,7 @@ mod tests {
     fn setup() -> Connection {
         let conn = Connection::open_in_memory().unwrap();
         init_db(&conn).unwrap();
-        user::add(&conn, "seller", "賣家", "seller", "").unwrap();
+        user::add(&conn, "seller", "賣家", "seller", "", "", "").unwrap();
         conn
     }
 

@@ -1,12 +1,31 @@
-import type { User, Product, CartItemWithProduct, Order, OrderWithItems, Category, Review, CartPreview, SellerStats } from "../types";
+import type { User, Product, CartItemWithProduct, Order, OrderWithItems, Category, Review, CartPreview, SellerStats, LoginResponse } from "../types";
+
+let _token: string | null = localStorage.getItem("token");
+
+export function setToken(token: string | null) {
+  _token = token;
+  if (token) localStorage.setItem("token", token);
+  else localStorage.removeItem("token");
+}
+
+export function getToken(): string | null {
+  return _token;
+}
 
 const BASE = "/api";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (_token) headers["Authorization"] = `Bearer ${_token}`;
   const res = await fetch(`${BASE}${path}`, {
-    headers: { "Content-Type": "application/json", ...options?.headers },
+    headers,
     ...options,
   });
+  if (res.status === 401) {
+    setToken(null);
+    window.location.href = "/login";
+    throw new Error("請先登入");
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(body.error || `HTTP ${res.status}`);
@@ -15,11 +34,19 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  auth: {
+    login: (username: string, password: string) =>
+      request<LoginResponse>("/auth/login", { method: "POST", body: JSON.stringify({ username, password }) }),
+    register: (data: { username: string; display_name: string; email?: string; password: string; role?: string }) =>
+      request<LoginResponse>("/auth/register", { method: "POST", body: JSON.stringify(data) }),
+    logout: () => request<{ ok: boolean }>("/auth/logout", { method: "POST" }),
+    me: () => request<User>("/auth/me"),
+  },
   users: {
     list: (search?: string) =>
       request<User[]>(`/users${search ? `?search=${encodeURIComponent(search)}` : ""}`),
     get: (id: number) => request<User>(`/users/${id}`),
-    create: (data: { username: string; display_name: string; role?: string; bio?: string }) =>
+    create: (data: { username: string; display_name: string; role?: string; bio?: string; email?: string; password?: string }) =>
       request<User>("/users", { method: "POST", body: JSON.stringify(data) }),
     update: (id: number, data: { display_name?: string; bio?: string; role?: string }) =>
       request<User>(`/users/${id}`, { method: "PUT", body: JSON.stringify(data) }),
@@ -48,6 +75,9 @@ export const api = {
     },
   },
   seller: {
+    myOrders: () => request<Order[]>("/seller/me/orders"),
+    myProducts: () => request<Product[]>("/seller/me/products"),
+    myStats: () => request<SellerStats>("/seller/me/stats"),
     orders: (id: number) => request<Order[]>(`/seller/${id}/orders`),
     products: (id: number) => request<Product[]>(`/seller/${id}/products`),
     stats: (id: number) => request<SellerStats>(`/seller/${id}/stats`),
@@ -59,6 +89,10 @@ export const api = {
     delete: (id: number) => request<{ deleted: boolean }>(`/categories/${id}`, { method: "DELETE" }),
   },
   cart: {
+    myList: () => request<CartItemWithProduct[]>("/cart/me"),
+    myClear: () => request<{ ok: boolean }>("/cart/me", { method: "DELETE" }),
+    myUpdateQty: (productId: number, quantity: number) =>
+      request<{ ok: boolean }>(`/cart/me/${productId}`, { method: "PUT", body: JSON.stringify({ quantity }) }),
     list: (userId: number) => request<CartItemWithProduct[]>(`/cart/${userId}`),
     add: (userId: number, productId: number, quantity?: number) =>
       request<{ ok: boolean }>("/cart", {
@@ -79,6 +113,10 @@ export const api = {
       }),
   },
   orders: {
+    myList: () => request<Order[]>("/orders/me"),
+    myPreview: () => request<CartPreview>("/orders/me/preview", { method: "POST" }),
+    myCreate: (note?: string) =>
+      request<OrderWithItems>("/orders/me", { method: "POST", body: JSON.stringify({ note: note ?? "" }) }),
     preview: (buyerId: number) =>
       request<CartPreview>("/orders/preview", {
         method: "POST",

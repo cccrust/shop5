@@ -154,8 +154,8 @@ mod tests {
     fn setup() -> Connection {
         let conn = Connection::open_in_memory().unwrap();
         init_db(&conn).unwrap();
-        user::add(&conn, "seller1", "賣家A", "seller", "").unwrap();
-        user::add(&conn, "buyer1", "買家B", "buyer", "").unwrap();
+        user::add(&conn, "seller1", "賣家A", "seller", "", "", "").unwrap();
+        user::add(&conn, "buyer1", "買家B", "buyer", "", "", "").unwrap();
         product::add(&conn, 1, "商品1", 100, 10, "測試", None).unwrap();
         product::add(&conn, 1, "商品2", 200, 10, "測試", None).unwrap();
         order::create_direct(&conn, 2, 1, &[(1, 1), (2, 1)], "").unwrap();

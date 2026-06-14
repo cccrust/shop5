@@ -1,44 +1,30 @@
 #!/usr/bin/env bash
+# 啟動後端 + 前端（開發模式）
 set -e
 
-SHOP5=${SHOP5:-cargo run --}
+# 清除佔用 port 8080/5173 的舊程序
+lsof -ti:8080 2>/dev/null | xargs kill -9 2>/dev/null || true
+lsof -ti:5173 2>/dev/null | xargs kill -9 2>/dev/null || true
+sleep 0.5
 
-usage() {
-    echo "用法: ./run.sh <mode>"
+cleanup() {
     echo ""
-    echo "模式:"
-    echo "  dev        開發模式（API + Vite dev server）"
-    echo "  prod       Production 模式（一體伺服）"
-    echo "  api        僅 API 伺服器（開發模式）"
-    echo "  build      建置前端"
-    exit 1
+    echo "正在停止服務..."
+    [ -n "$API_PID" ] && kill $API_PID 2>/dev/null
+    exit 0
 }
+trap cleanup SIGINT SIGTERM
 
-if [ $# -lt 1 ]; then
-    usage
-fi
+#echo "填入假資料..."
+#bash seed.sh
+#echo ""
 
-MODE=$1
-shift
+echo "啟動 API 伺服器 (port 8080)..."
+bash server.sh dev &
+API_PID=$!
 
-case "$MODE" in
-    dev)
-        echo "開發模式：請在另一個終端機執行 'cd web && npm run dev'"
-        echo "API 伺服器啟動於 http://localhost:8080"
-        SHOP5_DB="${SHOP5_DB:-shop5.db}" $SHOP5 web --port 8080 --dev
-        ;;
-    prod)
-        echo "Production 模式啟動於 http://localhost:8080"
-        SHOP5_DB="${SHOP5_DB:-shop5.db}" $SHOP5 web --port 8080
-        ;;
-    api)
-        echo "API 伺服器啟動於 http://localhost:8080"
-        SHOP5_DB="${SHOP5_DB:-shop5.db}" $SHOP5 web --port 8080 --dev
-        ;;
-    build)
-        (cd web && npm run build)
-        ;;
-    *)
-        usage
-        ;;
-esac
+echo "啟動前端開發伺服器 (port 5173)..."
+echo ""
+(cd web && npm run dev)
+
+cleanup

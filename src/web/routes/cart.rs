@@ -1,5 +1,6 @@
 use crate::model::cart;
 use crate::web::error::AppError;
+use crate::web::middleware::AuthUser;
 use crate::web::AppState;
 use axum::extract::{Path, State};
 use axum::Json;
@@ -26,6 +27,8 @@ pub struct RemovePayload {
 pub struct UpdateQtyPayload {
     quantity: i64,
 }
+
+// ---- 舊端點（需傳 user_id），保留向後相容 ----
 
 pub async fn list(
     State(state): State<AppState>,
@@ -70,5 +73,36 @@ pub async fn clear(
 ) -> Result<Json<serde_json::Value>, AppError> {
     let conn = state.conn.lock().unwrap();
     cart::clear(&conn, user_id)?;
+    Ok(Json(json!({ "ok": true })))
+}
+
+// ---- 新端點：從 token 推斷 user_id ----
+
+pub async fn my_list(
+    State(state): State<AppState>,
+    auth: AuthUser,
+) -> Result<Json<Vec<cart::CartItemWithProduct>>, AppError> {
+    let conn = state.conn.lock().unwrap();
+    let items = cart::list(&conn, auth.0.id)?;
+    Ok(Json(items))
+}
+
+pub async fn my_clear(
+    State(state): State<AppState>,
+    auth: AuthUser,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let conn = state.conn.lock().unwrap();
+    cart::clear(&conn, auth.0.id)?;
+    Ok(Json(json!({ "ok": true })))
+}
+
+pub async fn my_update_qty(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Path(product_id): Path<i64>,
+    Json(payload): Json<UpdateQtyPayload>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let conn = state.conn.lock().unwrap();
+    cart::update_qty(&conn, auth.0.id, product_id, payload.quantity)?;
     Ok(Json(json!({ "ok": true })))
 }

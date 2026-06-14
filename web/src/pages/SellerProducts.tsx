@@ -1,22 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { api } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 import type { Product } from "../types";
 
 export default function SellerProducts() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uid, setUid] = useState<number>(0);
 
   useEffect(() => {
+    if (!user) return;
     (async () => {
       try {
-        const users = await api.users.list();
-        const seller = users.find((u) => u.role === "seller") || users[0];
-        if (!seller) return;
-        setUid(seller.id);
-        const p = await api.seller.products(seller.id);
+        const p = await api.seller.myProducts();
         setProducts(p);
       } catch {
         // ignore
@@ -24,7 +22,7 @@ export default function SellerProducts() {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [user]);
 
   const toggleStatus = async (id: number, current: string) => {
     const newStatus = current === "active" ? "inactive" : "active";
@@ -36,6 +34,8 @@ export default function SellerProducts() {
     }
   };
 
+  if (!user) return null;
+
   if (loading) {
     return <div className="text-center py-20 text-gray-500">載入中...</div>;
   }
@@ -44,7 +44,7 @@ export default function SellerProducts() {
     <div>
       <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(`/users/${uid}`)} className="text-white">
+          <button onClick={() => navigate(`/users/${user.id}`)} className="text-white">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>

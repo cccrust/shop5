@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 import type { OrderWithItems } from "../types";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -14,9 +15,9 @@ const STATUS_LABEL: Record<string, string> = {
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [data, setData] = useState<OrderWithItems | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState(0);
   const [rating, setRating] = useState(5);
   const [reviewContent, setReviewContent] = useState("");
   const [reviewing, setReviewing] = useState(false);
@@ -28,18 +29,15 @@ export default function OrderDetail() {
     api.orders.get(oid).then((d) => {
       if (!d) return;
       setData(d);
-      api.users.list().then((users) => {
-        if (users.length > 0 && users[0]) setUserId(users[0].id);
-      });
     }).catch(() => {}).finally(() => setLoading(false));
   }, [id]);
 
   const handleReview = async (productId: number) => {
-    if (!data || !userId) return;
+    if (!data || !user) return;
     try {
       await api.reviews.create({
         order_id: data.order.id,
-        user_id: userId,
+        user_id: user.id,
         product_id: productId,
         rating,
         content: reviewContent,

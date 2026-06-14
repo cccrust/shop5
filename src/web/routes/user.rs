@@ -19,6 +19,10 @@ pub struct CreatePayload {
     role: String,
     #[serde(default)]
     bio: String,
+    #[serde(default)]
+    email: String,
+    #[serde(default)]
+    password: String,
 }
 
 #[derive(Deserialize)]
@@ -52,7 +56,7 @@ pub async fn create(
 ) -> Result<Json<user::User>, AppError> {
     let conn = state.conn.lock().unwrap();
     let role = if payload.role.is_empty() { "buyer" } else { &payload.role };
-    let u = user::add(&conn, &payload.username, &payload.display_name, role, &payload.bio)?;
+    let u = user::add(&conn, &payload.username, &payload.display_name, role, &payload.bio, &payload.email, &payload.password)?;
     Ok(Json(u))
 }
 

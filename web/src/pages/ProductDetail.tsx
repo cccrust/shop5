@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 import type { Product, Review } from "../types";
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState(0);
   const [qty, setQty] = useState(1);
 
   useEffect(() => {
@@ -17,15 +18,12 @@ export default function ProductDetail() {
       if (!id) return;
       try {
         const pid = parseInt(id);
-        const [p, rv, users] = await Promise.all([
+        const [p, rv] = await Promise.all([
           api.products.get(pid),
           api.reviews.listByProduct(pid),
-          api.users.list(),
         ]);
         setProduct(p);
         setReviews(rv);
-        const first = users[0];
-        if (first) setUserId(first.id);
       } catch {
         // ignore
       } finally {
@@ -35,9 +33,9 @@ export default function ProductDetail() {
   }, [id]);
 
   const handleAddToCart = async () => {
-    if (!product || !userId) return;
+    if (!product || !user) return;
     try {
-      await api.cart.add(userId, product.id, qty);
+      await api.cart.add(user.id, product.id, qty);
       alert("已加入購物車");
     } catch {
       alert("加入失敗");

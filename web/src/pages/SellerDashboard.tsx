@@ -1,20 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 import type { SellerStats } from "../types";
 
 export default function SellerDashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [stats, setStats] = useState<SellerStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user) return;
     (async () => {
       try {
-        const users = await api.users.list();
-        const seller = users.find((u) => u.role === "seller") || users[0];
-        if (!seller) return;
-        const s = await api.seller.stats(seller.id);
+        const s = await api.seller.myStats();
         setStats(s);
       } catch {
         // ignore
@@ -22,7 +22,9 @@ export default function SellerDashboard() {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [user]);
+
+  if (!user) return null;
 
   const formatPrice = (p: number) => `NT$${p.toLocaleString()}`;
 

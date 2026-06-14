@@ -96,4 +96,17 @@ print('OK 建立訂單')
 "
 
 echo ""
+echo "=== 4. 使用者切換功能測試 ==="
+
+# 驗證 JS bundle 包含使用者選擇器
+JS_FILE=$(ls web/dist/assets/index-*.js 2>/dev/null | head -1)
+python3 -c "
+import sys
+with open('$JS_FILE') as f:
+    js = f.read()
+    assert 'AuthProvider' in js or 'useAuth' in js, '缺少 AuthContext'
+    print('OK AuthContext 已編譯')
+"
+
+echo ""
 echo "=== 全部測試通過 ==="
