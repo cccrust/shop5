@@ -1,4 +1,4 @@
-use crate::model::{order, product};
+use crate::model::{order, product, stats};
 use crate::web::error::AppError;
 use crate::web::AppState;
 use axum::extract::{Path, State};
@@ -20,4 +20,13 @@ pub async fn products(
     let conn = state.conn.lock().unwrap();
     let products = product::list(&conn, Some(seller_id), "all", None)?;
     Ok(Json(products))
+}
+
+pub async fn stats(
+    State(state): State<AppState>,
+    Path(seller_id): Path<i64>,
+) -> Result<Json<stats::SellerStats>, AppError> {
+    let conn = state.conn.lock().unwrap();
+    let s = stats::seller_stats(&conn, seller_id)?;
+    Ok(Json(s))
 }

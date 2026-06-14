@@ -26,5 +26,6 @@ pub fn build_routes() -> Router<crate::web::AppState> {
         .route("/categories/{id}", delete(category::delete))
         .route("/seller/{id}/orders", get(seller::orders))
         .route("/seller/{id}/products", get(seller::products))
+        .route("/seller/{id}/stats", get(seller::stats))
         .merge(review::routes())
 }

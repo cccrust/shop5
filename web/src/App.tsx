@@ -12,6 +12,7 @@ import UserDetail from "./pages/UserDetail";
 import SearchPage from "./pages/Search";
 import SellerOrders from "./pages/SellerOrders";
 import SellerProducts from "./pages/SellerProducts";
+import SellerDashboard from "./pages/SellerDashboard";
 import ProductEdit from "./pages/ProductEdit";
 
 export default function App() {
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/seller/orders" element={<SellerOrders />} />
         <Route path="/seller/products" element={<SellerProducts />} />
         <Route path="/seller/products/new" element={<ProductEdit />} />
+        <Route path="/seller/dashboard" element={<SellerDashboard />} />
       </Routes>
     </Layout>
   );

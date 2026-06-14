@@ -84,3 +84,25 @@ export interface CartPreview {
   total: number;
   item_count: number;
 }
+
+export interface DailyStat {
+  date: string;
+  order_count: number;
+  revenue: number;
+}
+
+export interface TopProduct {
+  id: number;
+  title: string;
+  price: number;
+  sales_count: number;
+  total_revenue: number;
+}
+
+export interface SellerStats {
+  daily: DailyStat[];
+  top_products: TopProduct[];
+  total_orders: number;
+  total_revenue: number;
+  avg_order_value: number;
+}

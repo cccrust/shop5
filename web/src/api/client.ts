@@ -1,4 +1,4 @@
-import type { User, Product, CartItemWithProduct, Order, OrderWithItems, Category, Review, CartPreview } from "../types";
+import type { User, Product, CartItemWithProduct, Order, OrderWithItems, Category, Review, CartPreview, SellerStats } from "../types";
 
 const BASE = "/api";
 
@@ -50,6 +50,7 @@ export const api = {
   seller: {
     orders: (id: number) => request<Order[]>(`/seller/${id}/orders`),
     products: (id: number) => request<Product[]>(`/seller/${id}/products`),
+    stats: (id: number) => request<SellerStats>(`/seller/${id}/stats`),
   },
   categories: {
     list: () => request<Category[]>("/categories"),

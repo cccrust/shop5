@@ -63,6 +63,12 @@ export default function UserDetail() {
         {user.role === "seller" && (
           <div className="flex gap-2 mt-3">
             <button
+              onClick={() => navigate(`/seller/dashboard`)}
+              className="text-xs px-3 py-1.5 rounded bg-blue-600 text-white"
+            >
+              儀表板
+            </button>
+            <button
               onClick={() => navigate(`/seller/orders`)}
               className="text-xs px-3 py-1.5 rounded bg-gray-700 text-white"
             >

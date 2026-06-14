@@ -4,3 +4,4 @@ pub mod cart;
 pub mod order;
 pub mod category;
 pub mod review;
+pub mod stats;
