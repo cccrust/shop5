@@ -51,6 +51,22 @@ export default function UserDetail() {
           </div>
         </div>
         {user.bio && <p className="text-sm text-gray-400 mt-3">{user.bio}</p>}
+        {user.role === "seller" && (
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={() => navigate(`/seller/orders`)}
+              className="text-xs px-3 py-1.5 rounded bg-gray-700 text-white"
+            >
+              訂單管理
+            </button>
+            <button
+              onClick={() => navigate(`/seller/products`)}
+              className="text-xs px-3 py-1.5 rounded bg-gray-700 text-white"
+            >
+              商品管理
+            </button>
+          </div>
+        )}
       </div>
 
       {user.role === "seller" && products.length > 0 && (

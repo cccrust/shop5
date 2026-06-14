@@ -3,6 +3,7 @@ pub mod order;
 pub mod product;
 pub mod user;
 pub mod category;
+pub mod seller;
 
 use axum::routing::{delete, get, post, put};
 use axum::Router;
@@ -20,4 +21,6 @@ pub fn build_routes() -> Router<crate::web::AppState> {
         .route("/orders/{id}", get(order::get).put(order::update))
         .route("/categories", get(category::list).post(category::create))
         .route("/categories/{id}", delete(category::delete))
+        .route("/seller/{id}/orders", get(seller::orders))
+        .route("/seller/{id}/products", get(seller::products))
 }

@@ -33,8 +33,10 @@ export const api = {
       return request<Product[]>(`/products?${q}`);
     },
     get: (id: number) => request<Product>(`/products/${id}`),
-    create: (data: { seller_id: number; title: string; price: number; stock: number; description?: string }) =>
+    create: (data: { seller_id: number; title: string; price: number; stock: number; description?: string; category_id?: number }) =>
       request<Product>("/products", { method: "POST", body: JSON.stringify(data) }),
+    update: (id: number, data: { title?: string; price?: number; stock?: number; status?: string; description?: string; category_id?: number }) =>
+      request<Product>(`/products/${id}`, { method: "PUT", body: JSON.stringify(data) }),
     search: (params: { q?: string; category_id?: number; min_price?: number; max_price?: number; seller_id?: number }) => {
       const q = new URLSearchParams();
       if (params.q) q.set("q", params.q);
@@ -44,6 +46,10 @@ export const api = {
       if (params.seller_id) q.set("seller_id", String(params.seller_id));
       return request<Product[]>(`/products/search?${q}`);
     },
+  },
+  seller: {
+    orders: (id: number) => request<Order[]>(`/seller/${id}/orders`),
+    products: (id: number) => request<Product[]>(`/seller/${id}/products`),
   },
   categories: {
     list: () => request<Category[]>("/categories"),
