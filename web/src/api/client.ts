@@ -1,4 +1,4 @@
-import type { User, Product, CartItemWithProduct, Order, OrderWithItems, Category, Review } from "../types";
+import type { User, Product, CartItemWithProduct, Order, OrderWithItems, Category, Review, CartPreview } from "../types";
 
 const BASE = "/api";
 
@@ -71,8 +71,18 @@ export const api = {
       }),
     clear: (userId: number) =>
       request<{ ok: boolean }>(`/cart/${userId}`, { method: "DELETE" }),
+    update: (userId: number, productId: number, quantity: number) =>
+      request<{ ok: boolean }>(`/cart/${userId}/${productId}`, {
+        method: "PUT",
+        body: JSON.stringify({ quantity }),
+      }),
   },
   orders: {
+    preview: (buyerId: number) =>
+      request<CartPreview>("/orders/preview", {
+        method: "POST",
+        body: JSON.stringify({ buyer_id: buyerId }),
+      }),
     list: (params?: { buyer_id?: number; seller_id?: number }) => {
       const q = new URLSearchParams();
       if (params?.buyer_id) q.set("buyer_id", String(params.buyer_id));

@@ -24,6 +24,20 @@ pub struct UpdatePayload {
     status: String,
 }
 
+#[derive(Deserialize)]
+pub struct PreviewPayload {
+    buyer_id: i64,
+}
+
+pub async fn preview(
+    State(state): State<AppState>,
+    Json(payload): Json<PreviewPayload>,
+) -> Result<Json<order::CartPreview>, AppError> {
+    let conn = state.conn.lock().unwrap();
+    let preview = order::preview_from_cart(&conn, payload.buyer_id)?;
+    Ok(Json(preview))
+}
+
 pub async fn list(
     State(state): State<AppState>,
     Query(params): Query<ListParams>,

@@ -30,6 +30,15 @@ pub struct OrderWithItems {
     pub items: Vec<OrderItem>,
 }
 
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct CartPreview {
+    pub items: Vec<OrderItem>,
+    pub seller_id: i64,
+    pub seller_name: String,
+    pub total: i64,
+    pub item_count: i64,
+}
+
 pub fn create_from_cart(conn: &Connection, buyer_id: i64, note: &str) -> Result<OrderWithItems> {
     let cart_items = crate::model::cart::list(conn, buyer_id)?;
     if cart_items.is_empty() {
@@ -95,6 +104,60 @@ pub fn create_from_cart(conn: &Connection, buyer_id: i64, note: &str) -> Result<
     let order = get(conn, order_id)?;
     let items = get_items(conn, order_id)?;
     Ok(OrderWithItems { order, items })
+}
+
+pub fn preview_from_cart(conn: &Connection, buyer_id: i64) -> Result<CartPreview> {
+    let cart_items = crate::model::cart::list(conn, buyer_id)?;
+    if cart_items.is_empty() {
+        bail!("購物車是空的");
+    }
+
+    let mut seller_ids = Vec::new();
+    for item in &cart_items {
+        let p = crate::model::product::get(conn, item.product_id)?;
+        if p.stock < item.quantity {
+            bail!("商品「{}」庫存不足（庫存：{}，需求：{}）", p.title, p.stock, item.quantity);
+        }
+        if !seller_ids.contains(&p.seller_id) {
+            seller_ids.push(p.seller_id);
+        }
+    }
+
+    if seller_ids.len() > 1 {
+        bail!("購物車包含多位賣家的商品，請分開下單");
+    }
+
+    let seller_id = seller_ids[0];
+    let seller_name: String = conn.query_row(
+        "SELECT display_name FROM users WHERE id = ?1",
+        params![seller_id],
+        |row| row.get(0),
+    )?;
+
+    let mut total = 0i64;
+    let mut items = Vec::new();
+    for (idx, item) in cart_items.iter().enumerate() {
+        let p = crate::model::product::get(conn, item.product_id)?;
+        let subtotal = p.price * item.quantity;
+        total += subtotal;
+        items.push(OrderItem {
+            id: idx as i64,
+            order_id: 0,
+            product_id: p.id,
+            product_title: p.title.clone(),
+            product_price: p.price,
+            quantity: item.quantity,
+            subtotal,
+        });
+    }
+
+    Ok(CartPreview {
+        item_count: cart_items.iter().map(|i| i.quantity).sum(),
+        items,
+        seller_id,
+        seller_name,
+        total,
+    })
 }
 
 pub fn create_direct(

@@ -89,6 +89,27 @@ pub fn list(conn: &Connection, user_id: i64) -> Result<Vec<CartItemWithProduct>>
     Ok(items)
 }
 
+pub fn update_qty(conn: &Connection, user_id: i64, product_id: i64, quantity: i64) -> Result<CartItem> {
+    if quantity <= 0 {
+        bail!("數量必須大於 0");
+    }
+    let product = crate::model::product::get(conn, product_id)?;
+    if product.status != "active" {
+        bail!("商品已下架");
+    }
+    if product.stock < quantity {
+        bail!("商品庫存不足（庫存：{}，需求：{}）", product.stock, quantity);
+    }
+    let affected = conn.execute(
+        "UPDATE cart_items SET quantity = ?1 WHERE user_id = ?2 AND product_id = ?3",
+        params![quantity, user_id, product_id],
+    )?;
+    if affected == 0 {
+        bail!("購物車中無此商品");
+    }
+    get_by_user_product(conn, user_id, product_id)
+}
+
 pub fn clear(conn: &Connection, user_id: i64) -> Result<()> {
     conn.execute("DELETE FROM cart_items WHERE user_id = ?1", params![user_id])?;
     Ok(())

@@ -22,6 +22,11 @@ pub struct RemovePayload {
     product_id: i64,
 }
 
+#[derive(Deserialize)]
+pub struct UpdateQtyPayload {
+    quantity: i64,
+}
+
 pub async fn list(
     State(state): State<AppState>,
     Path(user_id): Path<i64>,
@@ -46,6 +51,16 @@ pub async fn remove(
 ) -> Result<Json<serde_json::Value>, AppError> {
     let conn = state.conn.lock().unwrap();
     cart::remove(&conn, payload.user_id, payload.product_id)?;
+    Ok(Json(json!({ "ok": true })))
+}
+
+pub async fn update_qty(
+    State(state): State<AppState>,
+    Path((user_id, product_id)): Path<(i64, i64)>,
+    Json(payload): Json<UpdateQtyPayload>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let conn = state.conn.lock().unwrap();
+    cart::update_qty(&conn, user_id, product_id, payload.quantity)?;
     Ok(Json(json!({ "ok": true })))
 }
 

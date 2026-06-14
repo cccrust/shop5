@@ -76,3 +76,11 @@ export interface OrderWithItems {
   order: Order;
   items: OrderItem[];
 }
+
+export interface CartPreview {
+  items: OrderItem[];
+  seller_id: number;
+  seller_name: string;
+  total: number;
+  item_count: number;
+}

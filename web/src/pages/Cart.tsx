@@ -32,13 +32,17 @@ export default function Cart() {
     load();
   };
 
-  const handleCheckout = async () => {
-    try {
-      const result = await api.orders.create(userId);
-      navigate(`/orders/${result.order.id}`);
-    } catch (e: any) {
-      alert(e.message);
+  const handleQtyChange = async (productId: number, newQty: number) => {
+    if (newQty <= 0) {
+      await handleRemove(productId);
+      return;
     }
+    await api.cart.update(userId, productId, newQty);
+    load();
+  };
+
+  const handleCheckout = async () => {
+    navigate("/checkout");
   };
 
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
@@ -70,14 +74,28 @@ export default function Cart() {
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-white text-sm truncate">{item.title}</div>
                   <div className="text-sm text-blue-400">{formatPrice(item.price)}</div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-gray-500">x{item.quantity}</span>
-                    <span className="text-xs text-gray-600">小計 {formatPrice(item.price * item.quantity)}</span>
+                  <div className="flex items-center gap-3 mt-2">
+                    <button
+                      onClick={() => handleQtyChange(item.product_id, item.quantity - 1)}
+                      className="w-7 h-7 rounded-full bg-gray-700 text-white flex items-center justify-center text-sm"
+                    >
+                      -
+                    </button>
+                    <span className="text-sm font-bold text-white w-6 text-center">{item.quantity}</span>
+                    <button
+                      onClick={() => handleQtyChange(item.product_id, item.quantity + 1)}
+                      className="w-7 h-7 rounded-full bg-gray-700 text-white flex items-center justify-center text-sm"
+                    >
+                      +
+                    </button>
+                    <span className="text-xs text-gray-500 ml-2">
+                      小計 {formatPrice(item.price * item.quantity)}
+                    </span>
                   </div>
                 </div>
                 <button
                   onClick={() => handleRemove(item.product_id)}
-                  className="text-red-500 text-xs shrink-0"
+                  className="text-red-500 text-xs shrink-0 px-2"
                 >
                   移除
                 </button>
