@@ -9,6 +9,12 @@ export interface User {
   updated_at: string;
 }
 
+export interface Category {
+  id: number;
+  name: string;
+  parent_id: number | null;
+}
+
 export interface Product {
   id: number;
   seller_id: number;
@@ -16,6 +22,7 @@ export interface Product {
   description: string;
   price: number;
   stock: number;
+  category_id: number | null;
   status: string;
   sales_count: number;
   created_at: string;

@@ -40,6 +40,9 @@ async fn main() -> Result<()> {
         cli::Commands::Order(cmd) => {
             cli::order::run(&conn, &cmd.subcommand)?;
         }
+        cli::Commands::Category(cmd) => {
+            cli::category::run(&conn, &cmd.subcommand)?;
+        }
         cli::Commands::Web { host, port, dev } => {
             web::start(conn, host, *port, *dev).await;
         }

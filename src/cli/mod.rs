@@ -3,6 +3,7 @@ pub mod user;
 pub mod product;
 pub mod cart;
 pub mod order;
+pub mod category;
 
 use clap::{Parser, Subcommand};
 
@@ -25,6 +26,8 @@ pub enum Commands {
     Cart(CartCmd),
     /// 訂單管理
     Order(OrderCmd),
+    /// 分類管理
+    Category(CategoryCmd),
     /// 啟動 Web API 伺服器
     Web {
         #[arg(long, default_value = "0.0.0.0")]
@@ -58,4 +61,10 @@ pub struct CartCmd {
 pub struct OrderCmd {
     #[command(subcommand)]
     pub subcommand: order::Subcommand,
+}
+
+#[derive(Parser)]
+pub struct CategoryCmd {
+    #[command(subcommand)]
+    pub subcommand: category::Subcommand,
 }

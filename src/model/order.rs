@@ -254,8 +254,8 @@ mod tests {
         init_db(&conn).unwrap();
         user::add(&conn, "seller", "賣家", "seller", "").unwrap();
         user::add(&conn, "buyer", "買家", "buyer", "").unwrap();
-        product::add(&conn, 1, "商品A", 100, 10, "").unwrap();
-        product::add(&conn, 1, "商品B", 200, 5, "").unwrap();
+        product::add(&conn, 1, "商品A", 100, 10, "", None).unwrap();
+        product::add(&conn, 1, "商品B", 200, 5, "", None).unwrap();
         conn
     }
 

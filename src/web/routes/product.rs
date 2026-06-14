@@ -10,6 +10,16 @@ use serde_json::json;
 pub struct ListParams {
     seller_id: Option<i64>,
     status: Option<String>,
+    category_id: Option<i64>,
+}
+
+#[derive(Deserialize)]
+pub struct SearchParams {
+    q: Option<String>,
+    category_id: Option<i64>,
+    min_price: Option<i64>,
+    max_price: Option<i64>,
+    seller_id: Option<i64>,
 }
 
 #[derive(Deserialize)]
@@ -20,6 +30,7 @@ pub struct CreatePayload {
     stock: i64,
     #[serde(default)]
     description: String,
+    category_id: Option<i64>,
 }
 
 #[derive(Deserialize)]
@@ -29,6 +40,7 @@ pub struct UpdatePayload {
     stock: Option<i64>,
     status: Option<String>,
     description: Option<String>,
+    category_id: Option<i64>,
 }
 
 pub async fn list(
@@ -37,7 +49,17 @@ pub async fn list(
 ) -> Result<Json<Vec<product::Product>>, AppError> {
     let conn = state.conn.lock().unwrap();
     let status = params.status.as_deref().unwrap_or("all");
-    let products = product::list(&conn, params.seller_id, status)?;
+    let products = product::list(&conn, params.seller_id, status, params.category_id)?;
+    Ok(Json(products))
+}
+
+pub async fn search(
+    State(state): State<AppState>,
+    Query(params): Query<SearchParams>,
+) -> Result<Json<Vec<product::Product>>, AppError> {
+    let conn = state.conn.lock().unwrap();
+    let keyword = params.q.as_deref().unwrap_or("");
+    let products = product::search(&conn, keyword, params.category_id, params.min_price, params.max_price, params.seller_id)?;
     Ok(Json(products))
 }
 
@@ -55,7 +77,7 @@ pub async fn create(
     Json(payload): Json<CreatePayload>,
 ) -> Result<Json<product::Product>, AppError> {
     let conn = state.conn.lock().unwrap();
-    let p = product::add(&conn, payload.seller_id, &payload.title, payload.price, payload.stock, &payload.description)?;
+    let p = product::add(&conn, payload.seller_id, &payload.title, payload.price, payload.stock, &payload.description, payload.category_id)?;
     Ok(Json(p))
 }
 
@@ -71,7 +93,8 @@ pub async fn update(
     let new_stock = payload.stock.unwrap_or(old.stock);
     let new_status = payload.status.as_deref().unwrap_or(&old.status);
     let new_desc = payload.description.as_deref().unwrap_or(&old.description);
-    let p = product::update(&conn, id, new_title, new_price, new_stock, new_status, new_desc)?;
+    let new_cat = payload.category_id;
+    let p = product::update(&conn, id, new_title, new_price, new_stock, new_status, new_desc, new_cat)?;
     Ok(Json(p))
 }
 

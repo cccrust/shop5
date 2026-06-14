@@ -7,6 +7,7 @@ import OrderList from "./pages/OrderList";
 import OrderDetail from "./pages/OrderDetail";
 import UserList from "./pages/UserList";
 import UserDetail from "./pages/UserDetail";
+import SearchPage from "./pages/Search";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/orders/:id" element={<OrderDetail />} />
         <Route path="/users" element={<UserList />} />
         <Route path="/users/:id" element={<UserDetail />} />
+        <Route path="/search" element={<SearchPage />} />
       </Routes>
     </Layout>
   );

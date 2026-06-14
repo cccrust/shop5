@@ -9,6 +9,12 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS categories (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT NOT NULL UNIQUE,
+    parent_id   INTEGER REFERENCES categories(id) ON DELETE SET NULL
+);
+
 CREATE TABLE IF NOT EXISTS products (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     seller_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -16,6 +22,7 @@ CREATE TABLE IF NOT EXISTS products (
     description TEXT DEFAULT '',
     price       INTEGER NOT NULL CHECK(price >= 0),
     stock       INTEGER NOT NULL DEFAULT 0 CHECK(stock >= 0),
+    category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
     status      TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'inactive', 'deleted')),
     sales_count INTEGER NOT NULL DEFAULT 0,
     created_at  TEXT NOT NULL DEFAULT (datetime('now')),
@@ -24,6 +31,7 @@ CREATE TABLE IF NOT EXISTS products (
 
 CREATE INDEX IF NOT EXISTS idx_products_seller ON products(seller_id);
 CREATE INDEX IF NOT EXISTS idx_products_status ON products(status);
+CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
 
 CREATE TABLE IF NOT EXISTS cart_items (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,

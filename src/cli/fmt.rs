@@ -21,7 +21,18 @@ pub fn fmt_product(p: &crate::model::product::Product) {
     if !p.description.is_empty() {
         println!("   描述: {}", p.description);
     }
-    println!("   賣家: #{} | 銷售: {} | 建立: {}", p.seller_id, p.sales_count, p.created_at);
+    let cat = match p.category_id {
+        Some(cid) => format!("分類: #{}", cid),
+        None => "未分類".to_string(),
+    };
+    println!("   賣家: #{} | 銷售: {} | {} | 建立: {}", p.seller_id, p.sales_count, cat, p.created_at);
+}
+
+pub fn fmt_category(c: &crate::model::category::Category) {
+    match c.parent_id {
+        Some(pid) => println!("#{} {} (上層: #{})", c.id, c.name, pid),
+        None => println!("#{} {} (頂層)", c.id, c.name),
+    }
 }
 
 pub fn fmt_cart_item(item: &crate::model::cart::CartItemWithProduct) {

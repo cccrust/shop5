@@ -1,4 +1,4 @@
-import type { User, Product, CartItemWithProduct, Order, OrderWithItems } from "../types";
+import type { User, Product, CartItemWithProduct, Order, OrderWithItems, Category } from "../types";
 
 const BASE = "/api";
 
@@ -25,15 +25,31 @@ export const api = {
       request<User>(`/users/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   },
   products: {
-    list: (params?: { seller_id?: number; status?: string }) => {
+    list: (params?: { seller_id?: number; status?: string; category_id?: number }) => {
       const q = new URLSearchParams();
       if (params?.seller_id) q.set("seller_id", String(params.seller_id));
       if (params?.status) q.set("status", params.status);
+      if (params?.category_id) q.set("category_id", String(params.category_id));
       return request<Product[]>(`/products?${q}`);
     },
     get: (id: number) => request<Product>(`/products/${id}`),
     create: (data: { seller_id: number; title: string; price: number; stock: number; description?: string }) =>
       request<Product>("/products", { method: "POST", body: JSON.stringify(data) }),
+    search: (params: { q?: string; category_id?: number; min_price?: number; max_price?: number; seller_id?: number }) => {
+      const q = new URLSearchParams();
+      if (params.q) q.set("q", params.q);
+      if (params.category_id) q.set("category_id", String(params.category_id));
+      if (params.min_price) q.set("min_price", String(params.min_price));
+      if (params.max_price) q.set("max_price", String(params.max_price));
+      if (params.seller_id) q.set("seller_id", String(params.seller_id));
+      return request<Product[]>(`/products/search?${q}`);
+    },
+  },
+  categories: {
+    list: () => request<Category[]>("/categories"),
+    create: (data: { name: string; parent_id?: number }) =>
+      request<Category>("/categories", { method: "POST", body: JSON.stringify(data) }),
+    delete: (id: number) => request<{ deleted: boolean }>(`/categories/${id}`, { method: "DELETE" }),
   },
   cart: {
     list: (userId: number) => request<CartItemWithProduct[]>(`/cart/${userId}`),
