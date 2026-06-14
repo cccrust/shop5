@@ -12,6 +12,8 @@ pub struct Product {
     pub category_id: Option<i64>,
     pub status: String,
     pub sales_count: i64,
+    pub rating: f64,
+    pub review_count: i64,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -76,8 +78,10 @@ pub fn list(
             category_id: row.get(6)?,
             status: row.get(7)?,
             sales_count: row.get(8)?,
-            created_at: row.get(9)?,
-            updated_at: row.get(10)?,
+            rating: row.get(9)?,
+            review_count: row.get(10)?,
+            created_at: row.get(11)?,
+            updated_at: row.get(12)?,
         })
     })?;
     let mut products = Vec::new();
@@ -133,8 +137,10 @@ pub fn search(
             category_id: row.get(6)?,
             status: row.get(7)?,
             sales_count: row.get(8)?,
-            created_at: row.get(9)?,
-            updated_at: row.get(10)?,
+            rating: row.get(9)?,
+            review_count: row.get(10)?,
+            created_at: row.get(11)?,
+            updated_at: row.get(12)?,
         })
     })?;
     let mut products = Vec::new();
@@ -157,8 +163,10 @@ pub fn get(conn: &Connection, id: i64) -> Result<Product> {
             category_id: row.get(6)?,
             status: row.get(7)?,
             sales_count: row.get(8)?,
-            created_at: row.get(9)?,
-            updated_at: row.get(10)?,
+            rating: row.get(9)?,
+            review_count: row.get(10)?,
+            created_at: row.get(11)?,
+            updated_at: row.get(12)?,
         })
     })?;
     Ok(product)

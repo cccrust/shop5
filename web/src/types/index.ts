@@ -15,6 +15,16 @@ export interface Category {
   parent_id: number | null;
 }
 
+export interface Review {
+  id: number;
+  order_id: number;
+  user_id: number;
+  product_id: number;
+  rating: number;
+  content: string;
+  created_at: string;
+}
+
 export interface Product {
   id: number;
   seller_id: number;
@@ -25,6 +35,8 @@ export interface Product {
   category_id: number | null;
   status: string;
   sales_count: number;
+  rating: number;
+  review_count: number;
   created_at: string;
   updated_at: string;
 }

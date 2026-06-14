@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
-import type { Product } from "../types";
+import type { Product, Review } from "../types";
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(0);
   const [qty, setQty] = useState(1);
@@ -15,9 +16,14 @@ export default function ProductDetail() {
     (async () => {
       if (!id) return;
       try {
-        const p = await api.products.get(parseInt(id));
+        const pid = parseInt(id);
+        const [p, rv, users] = await Promise.all([
+          api.products.get(pid),
+          api.reviews.listByProduct(pid),
+          api.users.list(),
+        ]);
         setProduct(p);
-        const users = await api.users.list();
+        setReviews(rv);
         const first = users[0];
         if (first) setUserId(first.id);
       } catch {
@@ -39,6 +45,12 @@ export default function ProductDetail() {
   };
 
   const formatPrice = (p: number) => `NT$${p.toLocaleString()}`;
+
+  const renderStars = (rating: number) => {
+    const full = "★".repeat(Math.round(rating));
+    const empty = "☆".repeat(5 - Math.round(rating));
+    return full + empty;
+  };
 
   if (loading || !product) {
     return <div className="text-center py-20 text-gray-500">載入中...</div>;
@@ -66,6 +78,9 @@ export default function ProductDetail() {
         <div className="flex items-center gap-3 mt-3 text-sm text-gray-500">
           <span>庫存 {product.stock}</span>
           <span>已售 {product.sales_count}</span>
+          {product.review_count > 0 && (
+            <span className="text-yellow-400">{renderStars(product.rating)} {product.rating.toFixed(1)} ({product.review_count})</span>
+          )}
         </div>
 
         {product.description && (
@@ -95,6 +110,23 @@ export default function ProductDetail() {
           </button>
         </div>
       </div>
+
+      {reviews.length > 0 && (
+        <div className="border-t border-gray-800">
+          <div className="px-4 py-3 text-sm font-bold text-white border-b border-gray-800">
+            商品評價 ({reviews.length})
+          </div>
+          {reviews.map((rv) => (
+            <div key={rv.id} className="px-4 py-3 border-b border-gray-800">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-yellow-400">{renderStars(rv.rating)}</span>
+                <span className="text-gray-500">{rv.created_at}</span>
+              </div>
+              {rv.content && <p className="text-sm text-gray-300 mt-1">{rv.content}</p>}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

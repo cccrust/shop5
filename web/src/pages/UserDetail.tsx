@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
-import type { User } from "../types";
+import type { User, Review } from "../types";
 
 export default function UserDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<{ id: number; title: string; price: number }[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,13 +17,21 @@ export default function UserDetail() {
     Promise.all([
       api.users.get(uid),
       api.products.list({ seller_id: uid }),
-    ]).then(([u, p]) => {
+      api.reviews.listByUser(uid),
+    ]).then(([u, p, rv]) => {
       setUser(u);
       setProducts(p);
+      setReviews(rv);
     }).catch(() => {}).finally(() => setLoading(false));
   }, [id]);
 
   const formatPrice = (p: number) => `NT$${p.toLocaleString()}`;
+
+  const renderStars = (rating: number) => {
+    const full = "★".repeat(rating);
+    const empty = "☆".repeat(5 - rating);
+    return full + empty;
+  };
 
   if (loading || !user) {
     return <div className="text-center py-20 text-gray-500">載入中...</div>;
@@ -94,6 +103,23 @@ export default function UserDetail() {
 
       {user.role === "seller" && products.length === 0 && (
         <div className="text-center py-10 text-gray-500 text-sm">該賣家目前尚無商品</div>
+      )}
+
+      {reviews.length > 0 && (
+        <div className="border-t border-gray-800">
+          <div className="px-4 py-2 border-b border-gray-800 text-sm text-gray-500">
+            評價 ({reviews.length})
+          </div>
+          {reviews.map((rv) => (
+            <div key={rv.id} className="px-4 py-3 border-b border-gray-800">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-yellow-400">{renderStars(rv.rating)}</span>
+                <span className="text-gray-500">{rv.created_at}</span>
+              </div>
+              {rv.content && <p className="text-sm text-gray-300 mt-1">{rv.content}</p>}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

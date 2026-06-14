@@ -1,4 +1,4 @@
-import type { User, Product, CartItemWithProduct, Order, OrderWithItems, Category } from "../types";
+import type { User, Product, CartItemWithProduct, Order, OrderWithItems, Category, Review } from "../types";
 
 const BASE = "/api";
 
@@ -90,5 +90,13 @@ export const api = {
         method: "PUT",
         body: JSON.stringify({ status }),
       }),
+  },
+  reviews: {
+    listByProduct: (productId: number) => request<Review[]>(`/reviews/product/${productId}`),
+    listByUser: (userId: number) => request<Review[]>(`/reviews/user/${userId}`),
+    create: (data: { order_id: number; user_id: number; product_id: number; rating: number; content?: string }) =>
+      request<Review>("/reviews", { method: "POST", body: JSON.stringify(data) }),
+    get: (id: number) => request<Review>(`/reviews/${id}`),
+    delete: (id: number) => request<void>(`/reviews/${id}`, { method: "DELETE" }),
   },
 };

@@ -1,3 +1,4 @@
+use crate::model::review::Review;
 use rusqlite::Connection;
 
 pub fn fmt_user(conn: &Connection, u: &crate::model::user::User) {
@@ -14,9 +15,14 @@ pub fn fmt_user_brief(u: &crate::model::user::User) {
 }
 
 pub fn fmt_product(p: &crate::model::product::Product) {
+    let stars = if p.review_count > 0 {
+        format!(" ★{:.1}/5 ({}人)", p.rating, p.review_count)
+    } else {
+        String::new()
+    };
     println!(
-        "#{} {} — NT${} / 庫存 {} / {}",
-        p.id, p.title, p.price, p.stock, p.status
+        "#{} {} — NT${} / 庫存 {} / {}{}",
+        p.id, p.title, p.price, p.stock, p.status, stars
     );
     if !p.description.is_empty() {
         println!("   描述: {}", p.description);
@@ -58,4 +64,22 @@ pub fn fmt_order_item(oi: &crate::model::order::OrderItem) {
         "    {} x{} — NT${}",
         oi.product_title, oi.quantity, oi.subtotal
     );
+}
+
+pub fn fmt_review(conn: &Connection, r: &Review) {
+    let username: String = conn
+        .query_row(
+            "SELECT display_name FROM users WHERE id = ?1",
+            rusqlite::params![r.user_id],
+            |row| row.get(0),
+        )
+        .unwrap_or_else(|_| format!("#{}", r.user_id));
+    let stars = "★".repeat(r.rating as usize) + &"☆".repeat((5 - r.rating) as usize);
+    println!(
+        "#{} {} {} {}",
+        r.id, username, stars, r.created_at
+    );
+    if !r.content.is_empty() {
+        println!("   \"{}\"", r.content);
+    }
 }

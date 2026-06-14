@@ -43,6 +43,9 @@ async fn main() -> Result<()> {
         cli::Commands::Category(cmd) => {
             cli::category::run(&conn, &cmd.subcommand)?;
         }
+        cli::Commands::Review(cmd) => {
+            cli::review::run(&conn, &cmd.subcommand)?;
+        }
         cli::Commands::Web { host, port, dev } => {
             web::start(conn, host, *port, *dev).await;
         }

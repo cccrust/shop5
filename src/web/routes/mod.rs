@@ -4,6 +4,7 @@ pub mod product;
 pub mod user;
 pub mod category;
 pub mod seller;
+pub mod review;
 
 use axum::routing::{delete, get, post, put};
 use axum::Router;
@@ -23,4 +24,5 @@ pub fn build_routes() -> Router<crate::web::AppState> {
         .route("/categories/{id}", delete(category::delete))
         .route("/seller/{id}/orders", get(seller::orders))
         .route("/seller/{id}/products", get(seller::products))
+        .merge(review::routes())
 }
